@@ -1,4 +1,4 @@
-import { StateMachine, STATES, TRANSITIONS } from "../StateMachine";
+import StateMachine, { STATES, TRANSITIONS } from "../StateMachine";
 
 export default function visualize(
 	visualizedStateMachineClass: StateMachine<any, any, any>

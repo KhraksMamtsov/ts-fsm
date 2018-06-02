@@ -15,7 +15,7 @@
 		"dist"
 	],
 	"bin": "./bin/dist/lib/tfsm.js",
-	"author": "maksimk <maksim@fuse8.ru>",
+	"author": "khraks-mamtsov <khraks-mamtsov@gmail.com>",
 	"repository": {
 		"type": "git",
 		"url": ""
@@ -27,7 +27,7 @@
 	"scripts": {
 		"lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
 		"prebuild": "rimraf dist",
-		"build": "tsc --module commonjs && rollup -c rollup.config.ts && npm doc",
+		"build": "rollup -c rollup.config.ts && npm run doc",
 		"doc": "typedoc --out docs --module umd --target es6 --theme minimal --mode modules --excludeExternals --excludePrivate --excludeProtected src",
 		"start": "rollup -c rollup.config.ts -w",
 		"test": "jest --config ./jest.config.js",

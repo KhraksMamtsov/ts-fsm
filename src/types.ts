@@ -1,4 +1,4 @@
-import { StateMachine } from "./StateMachine";
+import StateMachine from "./StateMachine";
 
 export type Arrayable<T> = T | T[];
 export type Callable<T> = T | (() => T);
