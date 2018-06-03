@@ -1,94 +1,98 @@
 {
-	"name": "tfsm",
-	"version": "0.0.0",
-	"description": "Finit state machine writen in typescript",
-	"keywords": [
-		"typescript",
-		"state-machine",
-		"state-management",
-		"lifecycle"
-	],
-	"main": "dist/tfsm.umd.js",
-	"module": "dist/tfsm.es5.js",
-	"typings": "dist/types/tfsm.d.ts",
-	"files": [
-		"dist"
-	],
-	"bin": "./bin/dist/lib/tfsm.js",
-	"author": "khraks-mamtsov <khraks-mamtsov@gmail.com>",
-	"repository": {
-		"type": "git",
-		"url": ""
-	},
-	"license": "MIT",
-	"engines": {
-		"node": ">=6.0.0"
-	},
-	"scripts": {
-		"lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
-		"prebuild": "rimraf dist",
-		"build": "rollup -c rollup.config.ts && npm run doc",
-		"doc": "typedoc --out docs --module umd --target es6 --theme minimal --mode modules --excludeExternals --excludePrivate --excludeProtected src",
-		"start": "rollup -c rollup.config.ts -w",
-		"test": "jest --config ./jest.config.js",
-		"test:watch": "jest --config ./jest.config.js --watch",
-		"test:prod": "npm run lint && npm run test -- --coverage --no-cache",
-		"deploy-docs": "ts-node tools/gh-pages-publish",
-		"report-coverage": "cat ./coverage/lcov.info | coveralls",
-		"commit": "git-cz",
-		"semantic-release": "semantic-release",
-		"semantic-release-prepare": "ts-node tools/semantic-release-prepare",
-		"precommit": "lint-staged"
-	},
-	"lint-staged": {
-		"{src,test}/**/*.ts": [
-			"prettier --write",
-			"git add"
-		]
-	},
-	"config": {
-		"commitizen": {
-			"path": "node_modules/cz-conventional-changelog"
-		},
-		"validate-commit-msg": {
-			"types": "conventional-commit-types",
-			"helpMessage": "Use \"npm run commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
-		}
-	},
-	"devDependencies": {
-		"@types/jest": "^22.0.0",
-		"@types/node": "^10.0.3",
-		"colors": "^1.1.2",
-		"commitizen": "^2.9.6",
-		"coveralls": "^3.0.0",
-		"cross-env": "^5.0.1",
-		"cz-conventional-changelog": "^2.0.0",
-		"husky": "^0.14.0",
-		"jest": "^22.0.2",
-		"lint-staged": "^7.0.0",
-		"lodash.camelcase": "^4.3.0",
-		"prettier": "^1.4.4",
-		"prompt": "^1.0.0",
-		"replace-in-file": "^3.0.0-beta.2",
-		"rimraf": "^2.6.1",
-		"rollup": "^0.58.0",
-		"rollup-plugin-commonjs": "^9.0.0",
-		"rollup-plugin-json": "^3.0.0",
-		"rollup-plugin-node-resolve": "^3.0.0",
-		"rollup-plugin-sourcemaps": "^0.4.2",
-		"rollup-plugin-typescript2": "^0.11.1",
-		"semantic-release": "^15.0.0",
-		"ts-jest": "^22.0.0",
-		"ts-node": "^6.0.0",
-		"tslint": "^5.8.0",
-		"tslint-config-prettier": "^1.1.0",
-		"tslint-config-standard": "^7.0.0",
-		"typedoc": "^0.11.0",
-		"typescript": "^2.6.2",
-		"@types/rollup": "^0.54.0",
-		"validate-commit-msg": "^2.12.2"
-	},
-	"dependencies": {
-		"reflect-metadata": "^0.1.12"
-	}
+  "name": "tfsm",
+  "version": "0.0.0-development",
+  "description": "Finit state machine writen in typescript",
+  "keywords": [
+    "typescript",
+    "state-machine",
+    "state-management",
+    "lifecycle"
+  ],
+  "main": "dist/tfsm.umd.js",
+  "module": "dist/tfsm.es5.js",
+  "typings": "dist/types/tfsm.d.ts",
+  "files": [
+    "dist"
+  ],
+  "bin": "./bin/dist/lib/tfsm.js",
+  "author": "khraks-mamtsov <khraks.mamtsov@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KhraksMamtsov/tfsm.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "scripts": {
+    "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "prebuild": "rimraf dist",
+    "build": "rollup -c rollup.config.ts && npm run doc",
+    "doc": "typedoc --out docs --module umd --target es6 --theme minimal --mode modules --excludeExternals --excludePrivate --excludeProtected src",
+    "start": "rollup -c rollup.config.ts -w",
+    "test": "jest --config ./jest.config.js",
+    "test:watch": "jest --config ./jest.config.js --watch",
+    "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
+    "deploy-docs": "ts-node tools/gh-pages-publish",
+    "report-coverage": "cat ./coverage/lcov.info | coveralls",
+    "commit": "git-cz",
+    "semantic-release": "semantic-release",
+    "semantic-release-prepare": "ts-node tools/semantic-release-prepare",
+    "precommit": "lint-staged",
+    "prepush": "npm run test:prod && npm run build",
+    "commitmsg": "validate-commit-msg",
+    "travis-deploy-once": "travis-deploy-once"
+  },
+  "lint-staged": {
+    "{src,test}/**/*.ts": [
+      "prettier --write",
+      "git add"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-conventional-changelog"
+    },
+    "validate-commit-msg": {
+      "types": "conventional-commit-types",
+      "helpMessage": "Use \"npm run commit\" instead, we use conventional-changelog format :) (https://github.com/commitizen/cz-cli)"
+    }
+  },
+  "devDependencies": {
+    "@types/jest": "^22.0.0",
+    "@types/node": "^10.0.3",
+    "colors": "^1.1.2",
+    "commitizen": "^2.9.6",
+    "coveralls": "^3.0.0",
+    "cross-env": "^5.0.1",
+    "cz-conventional-changelog": "^2.0.0",
+    "husky": "^0.14.0",
+    "jest": "^22.0.2",
+    "lint-staged": "^7.0.0",
+    "lodash.camelcase": "^4.3.0",
+    "prettier": "^1.4.4",
+    "prompt": "^1.0.0",
+    "replace-in-file": "^3.0.0-beta.2",
+    "rimraf": "^2.6.1",
+    "rollup": "^0.58.0",
+    "rollup-plugin-commonjs": "^9.0.0",
+    "rollup-plugin-json": "^3.0.0",
+    "rollup-plugin-node-resolve": "^3.0.0",
+    "rollup-plugin-sourcemaps": "^0.4.2",
+    "rollup-plugin-typescript2": "^0.11.1",
+    "semantic-release": "^15.5.0",
+    "ts-jest": "^22.0.0",
+    "ts-node": "^6.0.0",
+    "tslint": "^5.8.0",
+    "tslint-config-prettier": "^1.1.0",
+    "tslint-config-standard": "^7.0.0",
+    "typedoc": "^0.11.0",
+    "typescript": "^2.6.2",
+    "@types/rollup": "^0.54.0",
+    "validate-commit-msg": "^2.12.2",
+    "travis-deploy-once": "^5.0.0"
+  },
+  "dependencies": {
+    "reflect-metadata": "^0.1.12"
+  }
 }
