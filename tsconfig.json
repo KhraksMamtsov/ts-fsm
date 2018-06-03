@@ -18,7 +18,7 @@
 		"noUnusedLocals": true,
 		"declarationDir": "dist/types",
 		"outDir": "dist/lib"
-//		, "typeRoots": ["node_modules/@types"]
+		, "typeRoots": ["node_modules/@types"]
 	},
 	"include": [
 		"src"
