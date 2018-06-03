@@ -192,9 +192,9 @@ describe("State Machine Metadata", () => {
 		it("should return right all transitions", () => {
 			expect(TestSM.allTransitions).toEqual(
 				expect.arrayContaining([
+					TRANSITIONS.CONDENSE,
 					TRANSITIONS.VAPORIZE,
 					TRANSITIONS.FREEZE,
-					TRANSITIONS.CONDENSE,
 				])
 			);
 		});
