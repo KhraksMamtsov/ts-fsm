@@ -24,11 +24,13 @@ export interface ITransition<S = string | symbol, T = string | symbol, D = any> 
 	after?: Arrayable<ICancelableHook<S, T, D>>;
 }
 
+// tslint:disable-next-line:class-name
 export interface _ITransition<S, T, D> extends ITransition<S, T, D> {
 	before: ICancelableHook<S, T, D>[];
 	after: ICancelableHook<S, T, D>[];
 }
 
+// tslint:disable-next-line:class-name
 export interface _IState<S, T, D> extends IState<S, T, D> {
 	before: ICancelableHook<S, T, D>[];
 	after: ICancelableHook<S, T, D>[];

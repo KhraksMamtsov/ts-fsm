@@ -33,7 +33,6 @@ program
 		[OUTPUT.CONSOLE]
 	)
 	.action(function(filepaths) {
-		//, {_formats}: { _formats: string[] }
 		const parsedFilepaths = str2array(filepaths);
 		parsedFilepaths.forEach(async filepath => {
 			const resolvedFilepath = resolve(__dirname, filepath);
@@ -46,6 +45,7 @@ program
 
 			const mermaidGraph = visualize(TestSM);
 
+			// tslint:disable-next-line:no-empty
 			writeFile(resolvedFilepath.replace(/\.ts$/, ".md"), mermaidGraph, "utf8", () => {});
 		});
 	});
