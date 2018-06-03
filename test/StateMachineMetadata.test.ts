@@ -24,9 +24,7 @@ enum TRANSITIONS {
 	FREEZE = "FREEZE",
 }
 
-// const log = (msg: string) => (from: any, to: any) => {
-// 	console.log(msg, from.name + " --> " + to.name);
-// };
+// tslint:disable-next-line:no-empty
 const noop = () => {};
 
 type temperature = number;

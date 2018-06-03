@@ -2,10 +2,8 @@ import StateMachine from "../src/StateMachine";
 import { IState, ITransition } from "../src/types";
 
 describe("State Machine Hooks", () => {
-	const log = (msg: string) => (from: any, to: any) => {
-		console.log(msg, from.name + " --> " + to.name);
-	};
-	log;
+	// tslint:disable-next-line:no-empty
+	const noop = () => {};
 
 	enum STATES {
 		SOLID = "SOLID",
@@ -99,7 +97,7 @@ describe("State Machine Hooks", () => {
 
 		it("should add several beforeEachTransitionHooks", done => {
 			TestSM.onBeforeTransition([
-				() => {},
+				noop,
 				() => true,
 				() => {
 					done();
@@ -109,7 +107,7 @@ describe("State Machine Hooks", () => {
 		});
 
 		it("should prevent transition from beforeEachTransitionHook", async () => {
-			TestSM.onBeforeTransition([() => {}, () => true, () => false]);
+			TestSM.onBeforeTransition([noop, () => true, () => false]);
 			expect((await TestSM.transitTo(STATES.LIQUID)).state).toBe(STATES.SOLID);
 		});
 	});
@@ -157,9 +155,9 @@ describe("State Machine Hooks", () => {
 
 		it("should add several afterEachTransition", done => {
 			TestSM.onAfterTransition([
-				() => {},
+				noop,
 				() => true,
-				async () => await Promise.resolve(true),
+				async () => Promise.resolve(true),
 				() => {
 					done();
 				},
@@ -215,7 +213,7 @@ describe("State Machine Hooks", () => {
 
 		it("should add several beforeEachStateHandler", done => {
 			TestSM.onBeforeState([
-				() => {},
+				noop,
 				() => true,
 				() => {
 					done();
@@ -301,7 +299,7 @@ describe("State Machine Hooks", () => {
 					states: [
 						{ name: STATES.SOLID, data: {} },
 						{
-							before: [() => {}, () => true, () => false],
+							before: [noop, () => true, () => false],
 							name: STATES.LIQUID,
 							data: {},
 						},
@@ -366,7 +364,7 @@ describe("State Machine Hooks", () => {
 						{
 							name: STATES.SOLID,
 							data: {},
-							after: [() => {}, () => true, () => false],
+							after: [noop, () => true, () => false],
 						},
 						{
 							name: STATES.LIQUID,

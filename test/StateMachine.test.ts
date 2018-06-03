@@ -188,6 +188,7 @@ describe("State Machine", () => {
 		describe(`"constructor" throw StateMachineError`, () => {
 			it(`"constructor" throw StateMachineError#ABSENT_STATE`, () => {
 				try {
+					// tslint:disable-next-line:no-unused-expression
 					new StateMachine(
 						STATES.PLASMA, // ABSENT_STATE
 						{ states: [] },
@@ -201,6 +202,7 @@ describe("State Machine", () => {
 
 			it(`"constructor" throw StateMachineError#DUPLICATED_STATE`, () => {
 				try {
+					// tslint:disable-next-line:no-unused-expression
 					new StateMachine(
 						STATES.SOLID,
 						{
@@ -222,6 +224,7 @@ describe("State Machine", () => {
 
 			it(`"constructor" throw StateMachineError#DUPLICATED_TRANSITION`, () => {
 				try {
+					// tslint:disable-next-line:no-unused-expression
 					new StateMachine(
 						STATES.SOLID,
 						{
@@ -256,6 +259,7 @@ describe("State Machine", () => {
 
 			it(`"constructor" throw StateMachineError#ABSENT_STATE (to)`, () => {
 				try {
+					// tslint:disable-next-line:no-unused-expression
 					new StateMachine(
 						STATES.SOLID,
 						{
@@ -282,6 +286,7 @@ describe("State Machine", () => {
 
 			it(`"constructor" throw StateMachineError#ABSENT_STATE (from)`, () => {
 				try {
+					// tslint:disable-next-line:no-unused-expression
 					new StateMachine(
 						STATES.SOLID,
 						{
