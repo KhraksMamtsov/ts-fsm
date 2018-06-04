@@ -1,5 +1,5 @@
 {
-  "name": "tfsm",
+  "name": "ts-fsm",
   "version": "0.0.0-development",
   "description": "Finit state machine writen in typescript",
   "keywords": [
@@ -8,13 +8,13 @@
     "state-management",
     "lifecycle"
   ],
-  "main": "dist/tfsm.umd.js",
-  "module": "dist/tfsm.es5.js",
-  "typings": "dist/types/tfsm.d.ts",
+  "main": "dist/ts-fsm.umd.js",
+  "module": "dist/ts-fsm.es5.js",
+  "typings": "dist/types/ts-fsm.d.ts",
   "files": [
     "dist"
   ],
-  "bin": "./bin/dist/lib/tfsm.js",
+  "bin": "./bin/dist/lib/ts-fsm.js",
   "author": "khraks-mamtsov <khraks.mamtsov@gmail.com>",
   "repository": {
     "type": "git",
