@@ -6,6 +6,7 @@ import {
 	Callable,
 	ICancelableHook,
 	ICancelableHookResult,
+	IHydratedState,
 	IObject,
 	IState,
 	ITransition,
@@ -251,6 +252,56 @@ export default class StateMachine<S, T, D> {
 	 */
 	public get state(): _IState<S, T, D>["name"] {
 		return this._currentState.name;
+	}
+
+	/**
+	 * Dehydrated state which can be saved and restored later
+	 *
+	 * @example
+	 * const stateMachine = new StateMachine(...);
+	 * //... some stateMachine changes
+	 * const hydratedState = stateMachine.dehydrated; // { "state": "GAS", "data": { "deg": 200 }, transport: { some: "some" } }
+	 *
+	 * let newInstanceOfStateMachine = new StateMachine(...);
+	 * newInstanceOfStateMachine.hydrate(hydratedState); //
+	 */
+	public get dehydrated(): IHydratedState<S, D> {
+		return JSON.parse(
+			JSON.stringify({
+				state: this.state,
+				data: this.data,
+				transport: this.transport,
+			})
+		);
+	}
+
+	/**
+	 * Restore (hydrate) state machine from dehydrated state
+	 *
+	 * @throws {StateMachineError}
+	 * ABSENT_STATE State with name "stateName" does not exist.
+	 *
+	 * @example
+	 * const stateMachine = new StateMachine(...);
+	 * //... some stateMachine changes
+	 * const hydratedState = stateMachine.dehydrated; // { "state": "GAS", "data": { "deg": 200 }, transport: { some: "some" } }
+	 *
+	 * let newInstanceOfStateMachine = new StateMachine(...);
+	 * newInstanceOfStateMachine.hydrate(hydratedState); //
+	 */
+	public hydrate(hydratedState: IHydratedState<S, D>): void {
+		const state = this._findStateByName(hydratedState.state);
+
+		if (!state) {
+			throw new StateMachineError(
+				`State with name "${hydratedState.state}" does not exist.`,
+				StateMachineError.ERROR_CODE.ABSENT_STATE
+			);
+		}
+
+		this._currentState = state;
+		this._currentState.data = hydratedState.data;
+		this[TRANSPORT] = hydratedState.transport;
 	}
 
 	/**

@@ -259,6 +259,128 @@ describe("State Machine Hooks", () => {
 		});
 	});
 
+	describe("BT: beforeTransitionHandler: () => T", () => {
+		it("should add several beforeTransitionHandler", done => {
+			let testStateMachine = new StateMachine(
+				STATES.SOLID,
+				{
+					states: [
+						{ name: STATES.SOLID, data: {} },
+						{
+							name: STATES.LIQUID,
+							data: {},
+						},
+					],
+				},
+				{
+					transitions: [
+						{
+							before: [
+								() => undefined,
+								() => true,
+								() => {
+									done();
+								},
+							],
+							name: TRANSITIONS.MELT,
+							from: STATES.SOLID,
+							to: STATES.LIQUID,
+						},
+					],
+				}
+			);
+			testStateMachine.transitTo(STATES.LIQUID);
+		});
+
+		it("should prevent transition from beforeTransitionHandler", async () => {
+			let testStateMachine = new StateMachine(
+				STATES.SOLID,
+				{
+					states: [
+						{ name: STATES.SOLID, data: {} },
+						{
+							name: STATES.LIQUID,
+							data: {},
+						},
+					],
+				},
+				{
+					transitions: [
+						{
+							before: [noop, () => true, () => false],
+							name: TRANSITIONS.MELT,
+							from: STATES.SOLID,
+							to: STATES.LIQUID,
+						},
+					],
+				}
+			);
+
+			expect((await testStateMachine.transitTo(STATES.LIQUID)).state).toBe(STATES.SOLID);
+		});
+	});
+
+	describe("AT: afterTransitionHandler: () => T", () => {
+		it("should add several afterTransitionHandler", done => {
+			let testStateMachine = new StateMachine(
+				STATES.SOLID,
+				{
+					states: [
+						{ name: STATES.SOLID, data: {} },
+						{
+							name: STATES.LIQUID,
+							data: {},
+						},
+					],
+				},
+				{
+					transitions: [
+						{
+							name: TRANSITIONS.MELT,
+							from: STATES.SOLID,
+							to: STATES.LIQUID,
+							after: [
+								() => undefined,
+								() => true,
+								() => {
+									done();
+								},
+							],
+						},
+					],
+				}
+			);
+			testStateMachine.transitTo(STATES.LIQUID);
+		});
+
+		it("should prevent transition from afterTransitionHandler", async () => {
+			let testStateMachine = new StateMachine(
+				STATES.SOLID,
+				{
+					states: [
+						{ name: STATES.SOLID, data: {} },
+						{
+							name: STATES.LIQUID,
+							data: {},
+						},
+					],
+				},
+				{
+					transitions: [
+						{
+							name: TRANSITIONS.MELT,
+							from: STATES.SOLID,
+							to: STATES.LIQUID,
+							after: [noop, () => true, () => false],
+						},
+					],
+				}
+			);
+
+			expect((await testStateMachine.transitTo(STATES.LIQUID)).state).toBe(STATES.SOLID);
+		});
+	});
+
 	describe("BS: beforeStateHandler: () => T", () => {
 		it("should add several beforeStateHandler", done => {
 			let testStateMachine = new StateMachine(

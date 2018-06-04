@@ -49,3 +49,9 @@ export type IObject = {
 	[key: number]: any;
 	// [key: symbol]: any;
 };
+
+export interface IHydratedState<S, D> {
+	state: S;
+	data: D;
+	transport: IObject;
+}

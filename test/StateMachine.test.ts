@@ -184,6 +184,58 @@ describe("State Machine", () => {
 		expect(TestSM.transport.entropy).toBe(4);
 	});
 
+	it("check dehydration", async () => {
+		expect(TestSM.dehydrated).toEqual({
+			state: STATES.SOLID,
+			data: -100,
+			transport: {},
+		});
+		await TestSM.transitTo(STATES.LIQUID);
+		expect(TestSM.dehydrated).toEqual({
+			state: STATES.LIQUID,
+			data: 50,
+			transport: {
+				entropy: 0,
+			},
+		});
+		await TestSM.transitTo(STATES.GAS);
+		expect(TestSM.dehydrated).toEqual({
+			state: STATES.GAS,
+			data: 200,
+			transport: {
+				entropy: 1,
+			},
+		});
+	});
+
+	it("check dehydration immutability", async () => {
+		expect(TestSM.dehydrated).not.toBe(TestSM.dehydrated);
+	});
+
+	it("check hydration", async () => {
+		let dehydratedState = TestSM.dehydrated;
+		expect(dehydratedState).toEqual({
+			state: STATES.SOLID,
+			data: -100,
+			transport: {},
+		});
+		await TestSM.transitTo(STATES.LIQUID);
+		await TestSM.transitTo(STATES.GAS);
+		expect(TestSM.dehydrated).toEqual({
+			state: STATES.GAS,
+			data: 200,
+			transport: {
+				entropy: 1,
+			},
+		});
+		TestSM.hydrate(dehydratedState);
+		expect(TestSM.dehydrated).toEqual({
+			state: STATES.SOLID,
+			data: -100,
+			transport: {},
+		});
+	});
+
 	describe("State Machine: Throws", () => {
 		describe(`"constructor" throw StateMachineError`, () => {
 			it(`"constructor" throw StateMachineError#ABSENT_STATE`, () => {
@@ -467,6 +519,35 @@ describe("State Machine", () => {
 			} catch (error) {
 				expect(error).toBeInstanceOf(StateMachineError);
 				expect(error).toHaveProperty("code", StateMachineError.ERROR_CODE.PENDING_STATE);
+			}
+		});
+
+		it(`"hydrate" throw StateMachineError#ABSENT_STATE`, async () => {
+			let dehydratedState = TestSM.dehydrated;
+			expect(dehydratedState).toEqual({
+				state: STATES.SOLID,
+				data: -100,
+				transport: {},
+			});
+			await TestSM.transitTo(STATES.LIQUID);
+			await TestSM.transitTo(STATES.GAS);
+			expect(TestSM.dehydrated).toEqual({
+				state: STATES.GAS,
+				data: 200,
+				transport: {
+					entropy: 1,
+				},
+			});
+
+			try {
+				TestSM.hydrate({
+					state: STATES.PLASMA,
+					data: -100,
+					transport: {},
+				});
+			} catch (error) {
+				expect(error).toBeInstanceOf(StateMachineError);
+				expect(error).toHaveProperty("code", StateMachineError.ERROR_CODE.ABSENT_STATE);
 			}
 		});
 	});
