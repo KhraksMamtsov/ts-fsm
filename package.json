@@ -1,6 +1,6 @@
 {
   "name": "ts-fsm",
-  "version": "0.0.0-development",
+  "version": "0.0.0-development.0",
   "description": "Finit state machine writen in typescript",
   "keywords": [
     "typescript",
