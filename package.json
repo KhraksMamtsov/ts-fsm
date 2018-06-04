@@ -18,7 +18,7 @@
   "author": "khraks-mamtsov <khraks.mamtsov@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/KhraksMamtsov/tfsm.git"
+    "url": "https://github.com/KhraksMamtsov/ts-fsm.git"
   },
   "license": "MIT",
   "engines": {
