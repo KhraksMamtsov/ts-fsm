@@ -27,7 +27,7 @@
   "scripts": {
     "lint": "tslint -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
-    "build": "rollup -c rollup.config.ts && npm run doc",
+    "build": "rollup -c rollup.config.js && npm run doc",
     "doc": "typedoc --out docs --module umd --target es6 --theme minimal --mode modules --excludeExternals --excludePrivate --excludeProtected src",
     "start": "rollup -c rollup.config.js -w",
     "test": "jest --config ./jest.config.js",
