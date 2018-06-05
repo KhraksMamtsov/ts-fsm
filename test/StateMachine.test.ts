@@ -74,7 +74,7 @@ describe("State Machine", () => {
 				data: 200,
 			},
 		];
-		const increaseEntropy = (transport: IObject) => {
+		const increaseEntropy = ({ transport }: { transport: IObject }) => {
 			transport["entropy"] =
 				transport["entropy"] === undefined ? 0 : transport["entropy"] + 1;
 		};
@@ -182,6 +182,24 @@ describe("State Machine", () => {
 		expect(TestSM.transport.entropy).toBe(3);
 		await TestSM.transitTo(STATES.LIQUID);
 		expect(TestSM.transport.entropy).toBe(4);
+	});
+
+	it(`check "transitTo" passed arguments`, async () => {
+		let passedArgs!: number[];
+		TestSM.onBeforeTransition((_lifecycle: any, ...args: number[]) => {
+			passedArgs = args;
+		});
+		await TestSM.transitTo(STATES.LIQUID, 1, 2, 3);
+		expect(passedArgs).toEqual([1, 2, 3]);
+	});
+
+	it(`check "doTransition" passed arguments`, async () => {
+		let passedArgs!: number[];
+		TestSM.onBeforeTransition((_lifecycle: any, ...args: number[]) => {
+			passedArgs = args;
+		});
+		await TestSM.doTransition(TRANSITIONS.MELT, 1, 2, 3);
+		expect(passedArgs).toEqual([1, 2, 3]);
 	});
 
 	it("check dehydration", async () => {

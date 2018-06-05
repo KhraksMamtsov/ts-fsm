@@ -235,6 +235,24 @@ describe("State Machine Metadata", () => {
 			expect(TestSM.deg).toEqual("+5 C");
 		});
 
+		it(`check "transitTo" passed arguments`, async () => {
+			let passedArgs!: number[];
+			TestSM.onBeforeTransition(function(_lifecycle: any, ...args: number[]) {
+				passedArgs = args;
+			});
+			await TestSM.transitTo(STATES.GAS, 1, 2, 3);
+			expect(passedArgs).toEqual([1, 2, 3]);
+		});
+
+		it(`check "doTransition" passed arguments`, async () => {
+			let passedArgs!: number[];
+			TestSM.onBeforeTransition((_lifecycle: any, ...args: number[]) => {
+				passedArgs = args;
+			});
+			await TestSM.doTransition(TRANSITIONS.VAPORIZE, 1, 2, 3);
+			expect(passedArgs).toEqual([1, 2, 3]);
+		});
+
 		describe("State Machine Class Adapter: Throw", () => {
 			it(`"doTransition" throw StateMachineError#PENDING_STATE`, async () => {
 				await TestSM.doTransition(TRANSITIONS.VAPORIZE);

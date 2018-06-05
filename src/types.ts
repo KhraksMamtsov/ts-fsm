@@ -36,11 +36,17 @@ export interface _IState<S, T, D> extends IState<S, T, D> {
 	after: ICancelableHook<S, T, D>[];
 }
 
+export interface ILyfecycle<S, T, D> {
+	transport: IObject;
+	transition: _ITransition<S, T, D>;
+	from: _IState<S, T, D>;
+	to: _IState<S, T, D>;
+}
+
 export type ICancelableHook<S, T, D> = (
 	this: StateMachine<S, T, D>,
-	container: IObject,
-	from: _IState<S, T, D>,
-	to: _IState<S, T, D>
+	lifecycle: ILyfecycle<S, T, D>,
+	...args: any[]
 ) => ICancelableHookResult;
 
 export type ICancelableHookResult = Thenable<void | boolean>;

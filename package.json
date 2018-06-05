@@ -31,6 +31,7 @@
     "doc": "typedoc --out docs --module umd --target es6 --theme minimal --mode modules --excludeExternals --excludePrivate --excludeProtected src",
     "start": "rollup -c rollup.config.js -w",
     "test": "jest --config ./jest.config.js",
+    "test:clear": "jest --clearCache",
     "test:watch": "jest --config ./jest.config.js --watch",
     "test:prod": "npm run lint && npm run test -- --coverage --no-cache",
     "deploy-docs": "ts-node tools/gh-pages-publish",

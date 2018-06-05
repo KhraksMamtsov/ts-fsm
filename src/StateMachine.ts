@@ -27,7 +27,7 @@ const Pendabel: MethodDecorator = <SM extends StateMachine<any, any, any>>(
 	descriptor: TypedPropertyDescriptor<any>
 ) => {
 	let originalMethod = descriptor.value;
-	descriptor.value = function(this: SM, arg: Thenable<any>) {
+	descriptor.value = function(this: SM, ...args: any[]) {
 		if (this[PENDING_FLAG]) {
 			const pendingError = new StateMachineError(
 				`State Machine in pending state.`,
@@ -39,7 +39,7 @@ const Pendabel: MethodDecorator = <SM extends StateMachine<any, any, any>>(
 			this[PENDING_FLAG] = true;
 		}
 
-		const result = originalMethod.call(this, arg);
+		const result = originalMethod.call(this, ...args);
 
 		if (_isPromiseLike(result)) {
 			return result.then(asyncResult => {
@@ -410,10 +410,13 @@ export default class StateMachine<S, T, D> {
 	 * stateMachine.transitTo(Promise.resolve(stateName)) // Promise { stateMachine }
 	 */
 	@Pendabel
-	public async transitTo(stateName: Source<IState<S, T, D>["name"]>): Promise<this | never> {
+	public async transitTo(
+		stateName: Source<IState<S, T, D>["name"]>,
+		...args: any[]
+	): Promise<this | never> {
 		stateName = await _getSource(stateName);
 
-		return this._checkAndTransitTo(stateName);
+		return this._checkAndTransitTo(stateName, args);
 	}
 
 	/**
@@ -435,11 +438,12 @@ export default class StateMachine<S, T, D> {
 	 */
 	@Pendabel
 	public async doTransition(
-		transitionName: Source<ITransition<S, T, D>["name"]>
+		transitionName: Source<ITransition<S, T, D>["name"]>,
+		...args: any[]
 	): Promise<this | never> {
 		transitionName = await _getSource(transitionName);
 
-		return this._checkAndDoTransition(transitionName);
+		return this._checkAndDoTransition(transitionName, args);
 	}
 
 	/**
@@ -451,7 +455,10 @@ export default class StateMachine<S, T, D> {
 	 * @throws {StateMachineError}
 	 * UNAVAILABLE_STATE State machine can't transition to state with name "stateName".
 	 */
-	private async _checkAndTransitTo(stateName: _IState<S, T, D>["name"]): Promise<this | never> {
+	private async _checkAndTransitTo(
+		stateName: _IState<S, T, D>["name"],
+		args: any[]
+	): Promise<this | never> {
 		const currentState = this._findStateByName(stateName);
 
 		if (!currentState) {
@@ -470,7 +477,7 @@ export default class StateMachine<S, T, D> {
 			);
 		}
 
-		return this._transit(currentState, undefined);
+		return this._transit(args, currentState, undefined);
 	}
 
 	/**
@@ -486,7 +493,8 @@ export default class StateMachine<S, T, D> {
 	 * stateMachine.doTransition("MELT") // Promise { stateMachine }
 	 */
 	private async _checkAndDoTransition(
-		transitionName: _ITransition<S, T, D>["name"]
+		transitionName: _ITransition<S, T, D>["name"],
+		args: any[]
 	): Promise<this | never> {
 		const currentTransition = this[TRANSITIONS].find(
 			transition => transition.name === transitionName
@@ -508,7 +516,7 @@ export default class StateMachine<S, T, D> {
 			);
 		}
 
-		return this._transit(undefined, currentTransition);
+		return this._transit(args, undefined, currentTransition);
 	}
 
 	/**
@@ -518,15 +526,24 @@ export default class StateMachine<S, T, D> {
 	 * @example
 	 * stateMachine#_transit("LIQUID", undefined) // Promise { stateMachine }
 	 */
-	private async _transit(state: _IState<S, T, D>, transition: undefined): Promise<this>;
+	private async _transit(
+		args: any[],
+		state: _IState<S, T, D>,
+		transition: undefined
+	): Promise<this>;
 	/**
 	 * Do transition-based transition.
 	 *
 	 * @example
 	 * stateMachine#_transit(undefined, "MELT") // Promise { stateMachine }
 	 */
-	private async _transit(state: undefined, transition: _ITransition<S, T, D>): Promise<this>;
 	private async _transit(
+		args: any[],
+		state: undefined,
+		transition: _ITransition<S, T, D>
+	): Promise<this>;
+	private async _transit(
+		args: any[],
 		state?: _IState<S, T, D>,
 		transition?: _ITransition<S, T, D>
 	): Promise<this> {
@@ -549,7 +566,9 @@ export default class StateMachine<S, T, D> {
 		const isOkAfterEachStateHook: boolean = await this._runHooks(
 			this._afterEachStateHandlers,
 			this._currentState,
-			nextState
+			nextState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkAfterEachStateHook) {
@@ -560,7 +579,9 @@ export default class StateMachine<S, T, D> {
 		const isOkAfterStateHook: boolean = await this._runHooks(
 			this._currentState.after,
 			this._currentState,
-			nextState
+			nextState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkAfterStateHook) {
@@ -571,7 +592,9 @@ export default class StateMachine<S, T, D> {
 		const isOkBeforeEachTransitionHook: boolean = await this._runHooks(
 			this._beforeEachTransitionHandlers,
 			this._currentState,
-			nextState
+			nextState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkBeforeEachTransitionHook) {
@@ -582,7 +605,9 @@ export default class StateMachine<S, T, D> {
 		const isOkBeforeTransitionHook: boolean = await this._runHooks(
 			currentTransition.before,
 			this._currentState,
-			nextState
+			nextState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkBeforeTransitionHook) {
@@ -597,7 +622,9 @@ export default class StateMachine<S, T, D> {
 		const isOkAfterTransitionHook: boolean = await this._runHooks(
 			currentTransition.after,
 			lastState,
-			this._currentState
+			this._currentState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkAfterTransitionHook) {
@@ -609,7 +636,9 @@ export default class StateMachine<S, T, D> {
 		const isOkAfterEachTransitionHook: boolean = await this._runHooks(
 			this._afterEachTransitionHandlers,
 			lastState,
-			this._currentState
+			this._currentState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkAfterEachTransitionHook) {
@@ -621,7 +650,9 @@ export default class StateMachine<S, T, D> {
 		const isOkBeforeStateHook: boolean = await this._runHooks(
 			this._currentState.before,
 			lastState,
-			this._currentState
+			this._currentState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkBeforeStateHook) {
@@ -633,7 +664,9 @@ export default class StateMachine<S, T, D> {
 		const isOkBeforeEachStateHook: boolean = await this._runHooks(
 			this._beforeEachStateHandlers,
 			lastState,
-			this._currentState
+			this._currentState,
+			currentTransition,
+			args
 		);
 
 		if (!isOkBeforeEachStateHook) {
@@ -778,8 +811,11 @@ export default class StateMachine<S, T, D> {
 	private async _runHooks(
 		hooks: ICancelableHook<S, T, D>[],
 		from: _IState<S, T, D>,
-		to: _IState<S, T, D>
+		to: _IState<S, T, D>,
+		transition: _ITransition<S, T, D>,
+		args: any[] = []
 	): Promise<boolean> {
+		// console.log(args);
 		return (
 			false !==
 			(await hooks.reduce<ICancelableHookResult>(async (acc, callback) => {
@@ -787,7 +823,11 @@ export default class StateMachine<S, T, D> {
 					return false;
 				} else {
 					return _getThenable<ICancelableHookResult>(
-						callback.call(this, this[TRANSPORT], from, to)
+						callback.call(
+							this,
+							{ transition, from, to, transport: this[TRANSPORT] },
+							...args
+						)
 					);
 				}
 			}, Promise.resolve(true)))

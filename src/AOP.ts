@@ -1,5 +1,13 @@
 import "reflect-metadata";
-import { Callable, IState, ITransition, Source, Thenable } from "./types";
+import {
+	Arrayable,
+	Callable,
+	ICancelableHook,
+	IState,
+	ITransition,
+	Source,
+	Thenable,
+} from "./types";
 import StateMachine from "./StateMachine";
 import { StateMachineError } from "./Error";
 
@@ -77,8 +85,11 @@ export class StateMachineClassAdapter<S = string | symbol, T = string | symbol, 
 
 	// TODO: COHENCE transitTo --> doTransition
 	// TODO: Enshure with asyncrones
-	public async transitTo(newStateName: Callable<IState<S, T, D>["name"]>): Promise<this | never> {
-		await this[STATE_MACHINE_INSTANCE].transitTo(newStateName);
+	public async transitTo(
+		newStateName: Callable<IState<S, T, D>["name"]>,
+		...args: any[]
+	): Promise<this | never> {
+		await this[STATE_MACHINE_INSTANCE].transitTo(newStateName, ...args);
 		// TODO: ENSHURE AT THIS POINT --> . <--
 		this[STATE_MACHINE_CLASS_ADAPTER_SET_PROPERTIES]();
 		return this;
@@ -86,9 +97,10 @@ export class StateMachineClassAdapter<S = string | symbol, T = string | symbol, 
 
 	// TODO: Enshure with asyncrones
 	public async doTransition(
-		transitionName: Callable<ITransition<S, T, D>["name"]>
+		transitionName: Callable<ITransition<S, T, D>["name"]>,
+		...args: any[]
 	): Promise<this | never> {
-		await this[STATE_MACHINE_INSTANCE].doTransition(transitionName);
+		await this[STATE_MACHINE_INSTANCE].doTransition(transitionName, ...args);
 		this[STATE_MACHINE_CLASS_ADAPTER_SET_PROPERTIES]();
 		return this;
 	}
@@ -107,6 +119,34 @@ export class StateMachineClassAdapter<S = string | symbol, T = string | symbol, 
 				);
 			}
 		});
+	}
+
+	/**
+	 * Add handler or array of handlers on BeforeTransitionHook
+	 */
+	public onBeforeTransition(handlers: Arrayable<ICancelableHook<S, T, D>>): void {
+		this[STATE_MACHINE_INSTANCE].onBeforeTransition(handlers);
+	}
+
+	/**
+	 * Add handler or array of handlers on AfterTransitionHook
+	 */
+	public onAfterTransition(handlers: Arrayable<ICancelableHook<S, T, D>>): void {
+		this[STATE_MACHINE_INSTANCE].onAfterTransition(handlers);
+	}
+
+	/**
+	 * Add handler or array of handlers on BeforeStateHook
+	 */
+	public onBeforeState(handlers: Arrayable<ICancelableHook<S, T, D>>): void {
+		this[STATE_MACHINE_INSTANCE].onBeforeState(handlers);
+	}
+
+	/**
+	 * Add handler or array of handlers on AfterStateHook
+	 */
+	public onAfterState(handlers: Arrayable<ICancelableHook<S, T, D>>): void {
+		this[STATE_MACHINE_INSTANCE].onAfterState(handlers);
 	}
 }
 
