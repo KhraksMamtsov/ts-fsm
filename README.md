@@ -103,13 +103,13 @@ Transition can be canceled from any handler with explicitly return `false` or `P
 
 ```typescript
 new StateMachine<STATE, TRANSITION, IDATA>(
-    STATE.SOLID, {
-    before: function (transport, from, to) => {
-    } 
-    states 
-    }, { 
+    STATE.SOLID, 
+    {
+        before: function (transport, from, to) => {} 
+        states 
+    },
     transitions 
-}); 
+); 
 ```
 
 ## Pending state

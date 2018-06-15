@@ -52,9 +52,7 @@ describe("State Machine Hooks", () => {
 				before: [
 					() => {
 						return new Promise(resolve => {
-							setTimeout(() => {
-								resolve(true);
-							}, 0);
+							setTimeout(() => resolve(true), 0);
 						});
 					},
 				],

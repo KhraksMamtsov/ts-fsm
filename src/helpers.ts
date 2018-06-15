@@ -16,6 +16,13 @@ export const _isPromiseLike = <T>(some: any): some is PromiseLike<T> => {
 };
 
 /**
+ * Return true if argument is Array, false otherwise.
+ */
+export const _isArray = <T>(some: any): some is Array<T> => {
+	return Array.isArray(some);
+};
+
+/**
  * Converts the supposed Array to an Array.
  *
  * @example
@@ -25,7 +32,7 @@ export const _isPromiseLike = <T>(some: any): some is PromiseLike<T> => {
  * </code></pre>
  */
 export const _getArrayable = <T>(arrayable: Arrayable<T>): T[] => {
-	return Array.isArray(arrayable) ? arrayable : [arrayable];
+	return _isArray(arrayable) ? arrayable : [arrayable];
 };
 
 /**

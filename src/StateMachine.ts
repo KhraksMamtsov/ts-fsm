@@ -1,4 +1,11 @@
-import { _getArrayable, _getCallable, _getSource, _getThenable, _isPromiseLike } from "./helpers";
+import {
+	_getArrayable,
+	_getCallable,
+	_getSource,
+	_getThenable,
+	_isArray,
+	_isPromiseLike,
+} from "./helpers";
 import {
 	_IState,
 	_ITransition,
@@ -6,6 +13,7 @@ import {
 	Callable,
 	ICancelableHook,
 	ICancelableHookResult,
+	IConfig,
 	IHydratedState,
 	IObject,
 	IState,
@@ -29,12 +37,17 @@ const Pendabel: MethodDecorator = <SM extends StateMachine<any, any, any>>(
 	let originalMethod = descriptor.value;
 	descriptor.value = function(this: SM, ...args: any[]) {
 		if (this[PENDING_FLAG]) {
-			const pendingError = new StateMachineError(
-				`State Machine in pending state.`,
-				StateMachineError.ERROR_CODE.PENDING_STATE
-			);
-
-			return Promise.reject(pendingError);
+			try {
+				// @ts-ignore
+				this._onError(
+					new StateMachineError(
+						`State Machine in pending state.`,
+						StateMachineError.ERROR_CODE.PENDING_STATE
+					)
+				);
+			} catch (error) {
+				return Promise.reject(error);
+			}
 		} else {
 			this[PENDING_FLAG] = true;
 		}
@@ -57,6 +70,7 @@ const Pendabel: MethodDecorator = <SM extends StateMachine<any, any, any>>(
 
 export const TRANSITIONS = Symbol("STATE_MACHINE#TRANSITIONS");
 export const STATES = Symbol("STATE_MACHINE#STATES");
+export const CONFIG = Symbol("STATE_MACHINE#CONFIG");
 const PENDING_FLAG = Symbol("STATE_MACHINE#PENDING_FLAG");
 const TRANSPORT = Symbol("STATE_MACHINE#TRANSPORT");
 
@@ -77,6 +91,7 @@ export default class StateMachine<S, T, D> {
 	/**
 	 * Current state of state machine
 	 */
+	// @ts-ignore
 	private _currentState: _IState<S, T, D>;
 
 	/**
@@ -88,6 +103,11 @@ export default class StateMachine<S, T, D> {
 	 * @type `{boolean} Symbol("PENDING_FLAG")` Pending flag
 	 */
 	private [PENDING_FLAG]: boolean = false;
+
+	/**
+	 * State machine config.
+	 */
+	private [CONFIG]: IConfig = {};
 
 	/**
 	 * List of handlers on BeforeEachStateHook
@@ -111,41 +131,58 @@ export default class StateMachine<S, T, D> {
 
 	public constructor(
 		initialStateName: IState<S, T, D>["name"],
-		states: {
-			states: IState<S, T, D>[];
-			before?: Arrayable<ICancelableHook<S, T, D>>;
-			after?: Arrayable<ICancelableHook<S, T, D>>;
-		},
-		transitions: {
-			transitions: ITransition<S, T, D>[];
-			before?: Arrayable<ICancelableHook<S, T, D>>;
-			after?: Arrayable<ICancelableHook<S, T, D>>;
-		}
+		states:
+			| {
+					states: IState<S, T, D>[];
+					before?: Arrayable<ICancelableHook<S, T, D>>;
+					after?: Arrayable<ICancelableHook<S, T, D>>;
+			  }
+			| IState<S, T, D>[],
+		transitions:
+			| {
+					transitions: ITransition<S, T, D>[];
+					before?: Arrayable<ICancelableHook<S, T, D>>;
+					after?: Arrayable<ICancelableHook<S, T, D>>;
+			  }
+			| ITransition<S, T, D>[],
+		config: IConfig = {}
 	) {
-		this._beforeEachStateHandlers = states.before ? _getArrayable(states.before) : [];
-		this._afterEachStateHandlers = states.after ? _getArrayable(states.after) : [];
-		this[STATES] = this[STATES].concat(this._normalizeStates(states.states));
+		this[CONFIG] = config;
 
-		this._beforeEachTransitionHandlers = transitions.before
-			? _getArrayable(transitions.before)
-			: [];
-		this._afterEachTransitionHandlers = transitions.after
-			? _getArrayable(transitions.after)
-			: [];
-		this[TRANSITIONS] = this[TRANSITIONS].concat(
-			this._normalizeTransitions(transitions.transitions)
-		);
+		if (!_isArray(states)) {
+			this._beforeEachStateHandlers = states.before ? _getArrayable(states.before) : [];
+			this._afterEachStateHandlers = states.after ? _getArrayable(states.after) : [];
+			this[STATES] = this[STATES].concat(this._normalizeStates(states.states));
+		} else {
+			this[STATES] = this[STATES].concat(this._normalizeStates(states));
+		}
+
+		if (!_isArray(transitions)) {
+			this._beforeEachTransitionHandlers = transitions.before
+				? _getArrayable(transitions.before)
+				: [];
+			this._afterEachTransitionHandlers = transitions.after
+				? _getArrayable(transitions.after)
+				: [];
+			this[TRANSITIONS] = this[TRANSITIONS].concat(
+				this._normalizeTransitions(transitions.transitions)
+			);
+		} else {
+			this[TRANSITIONS] = this[TRANSITIONS].concat(this._normalizeTransitions(transitions));
+		}
 
 		this._validate();
 
 		const initialState = this._findStateByName(initialStateName);
 
 		if (!initialState) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`State with name ${initialStateName} does not exist.`,
 				StateMachineError.ERROR_CODE.ABSENT_STATE
 			);
+			return this._onError(error);
 		}
+
 		this._currentState = initialState;
 	}
 
@@ -293,10 +330,11 @@ export default class StateMachine<S, T, D> {
 		const state = this._findStateByName(hydratedState.state);
 
 		if (!state) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`State with name "${hydratedState.state}" does not exist.`,
 				StateMachineError.ERROR_CODE.ABSENT_STATE
 			);
+			return this._onError(error);
 		}
 
 		this._currentState = state;
@@ -462,19 +500,21 @@ export default class StateMachine<S, T, D> {
 		const currentState = this._findStateByName(stateName);
 
 		if (!currentState) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`State with name "${stateName}" does not exist.`,
 				StateMachineError.ERROR_CODE.ABSENT_STATE
 			);
+			return this._onError(error);
 		}
 
 		if (!this._canTransitTo(stateName)) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`State machine can transit from ${
 					this._currentState.name
 				} only to ${this.states.join(", ")} but not to ${stateName}.`,
 				StateMachineError.ERROR_CODE.UNAVAILABLE_STATE
 			);
+			return this._onError(error);
 		}
 
 		return this._transit(args, currentState, undefined);
@@ -501,19 +541,21 @@ export default class StateMachine<S, T, D> {
 		);
 
 		if (!currentTransition) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`Transition with name "${transitionName}" does not exist.`,
 				StateMachineError.ERROR_CODE.ABSENT_TRANSITION
 			);
+			return this._onError(error);
 		}
 
 		if (!this._canDoTransition(currentTransition.name)) {
-			throw new StateMachineError(
+			const error = new StateMachineError(
 				`State machine can do "${this.transitions.join(
 					","
 				)}" transition(s) but not "${transitionName}".`,
 				StateMachineError.ERROR_CODE.UNAVAILABLE_TRANSITION
 			);
+			return this._onError(error);
 		}
 
 		return this._transit(args, undefined, currentTransition);
@@ -677,7 +719,7 @@ export default class StateMachine<S, T, D> {
 		return this;
 	}
 
-	private _findStateByName(name: IState<S, T, D>["name"]): _IState<S, T, D> | void {
+	private _findStateByName(name: IState<S, T, D>["name"]): _IState<S, T, D> | undefined {
 		return this[STATES].find(state => state.name === name);
 	}
 
@@ -752,10 +794,11 @@ export default class StateMachine<S, T, D> {
 			);
 
 			if (isExistDuplicatedStates) {
-				throw new StateMachineError(
+				const error = new StateMachineError(
 					`There are duplicated states "${state.name}".`,
 					StateMachineError.ERROR_CODE.DUPLICATED_STATE
 				);
+				return this._onError(error);
 			}
 		});
 
@@ -765,12 +808,13 @@ export default class StateMachine<S, T, D> {
 			);
 
 			if (!isExistTransitionFromState) {
-				throw new StateMachineError(
-					`There is no state "${transition.from}" FROM which the transition "${
+				const error = new StateMachineError(
+					`There is no state "${transition.from}" from which the transition "${
 						transition.name
 					}" begins.`,
 					StateMachineError.ERROR_CODE.ABSENT_STATE
 				);
+				return this._onError(error);
 			}
 
 			const isExistTransitionToState = this.allStates.some(
@@ -778,12 +822,13 @@ export default class StateMachine<S, T, D> {
 			);
 
 			if (!isExistTransitionToState) {
-				throw new StateMachineError(
+				const error = new StateMachineError(
 					`There is no state "${transition.to}" in which the transition "${
 						transition.name
 					}" leads.`,
 					StateMachineError.ERROR_CODE.ABSENT_STATE
 				);
+				return this._onError(error);
 			}
 
 			const isExistDuplicatedTransition = allTransitions.some(
@@ -794,14 +839,29 @@ export default class StateMachine<S, T, D> {
 			);
 
 			if (isExistDuplicatedTransition) {
-				throw new StateMachineError(
+				const error = new StateMachineError(
 					`There are duplicated transitions "${transition.name}" from "${
 						transition.from
 					}" state.`,
 					StateMachineError.ERROR_CODE.DUPLICATED_TRANSITION
 				);
+				return this._onError(error);
 			}
 		});
+	}
+
+	private _onError(error: StateMachineError): never {
+		const customErrorHandler = this[CONFIG].onError;
+
+		if (customErrorHandler) {
+			try {
+				customErrorHandler(error);
+			} catch (customError) {
+				throw customError;
+			}
+		}
+
+		throw error;
 	}
 
 	/**
@@ -816,21 +876,42 @@ export default class StateMachine<S, T, D> {
 		args: any[] = []
 	): Promise<boolean> {
 		// console.log(args);
-		return (
-			false !==
-			(await hooks.reduce<ICancelableHookResult>(async (acc, callback) => {
-				if ((await acc) === false) {
-					return false;
+		const hooksResult = await hooks.reduce<ICancelableHookResult>(async (acc, callback) => {
+			if ((await acc) === false) {
+				return false;
+			} else {
+				const handlerResult = _getThenable<ICancelableHookResult>(
+					callback.call(
+						this,
+						{ transition, from, to, transport: this[TRANSPORT] },
+						...args
+					)
+				);
+				let timeoutPromise: Promise<boolean>;
+
+				if (this[CONFIG].timeout !== undefined) {
+					timeoutPromise = new Promise((_resolve, reject) => {
+						const timer = setTimeout(() => {
+							clearTimeout(timer);
+							try {
+								const timeoutError = new StateMachineError(
+									`Timeout has occurred.`,
+									StateMachineError.ERROR_CODE.TIMEOUT
+								);
+								this._onError(timeoutError);
+							} catch (error) {
+								reject(error);
+							}
+						}, this[CONFIG].timeout);
+					});
 				} else {
-					return _getThenable<ICancelableHookResult>(
-						callback.call(
-							this,
-							{ transition, from, to, transport: this[TRANSPORT] },
-							...args
-						)
-					);
+					timeoutPromise = new Promise(() => {});
 				}
-			}, Promise.resolve(true)))
-		);
+
+				return Promise.race([handlerResult, timeoutPromise]);
+			}
+		}, Promise.resolve(true));
+
+		return hooksResult !== false;
 	}
 }

@@ -10,15 +10,17 @@
 			"dom"
 		],
 		"strict": true,
+		"suppressExcessPropertyErrors": true,
 		"sourceMap": true,
 		"declaration": true,
 		"allowSyntheticDefaultImports": true,
 		"experimentalDecorators": true,
 		"noUnusedParameters": true,
 		"noUnusedLocals": true,
+		"removeComments": false,
 		"declarationDir": "dist/types",
 		"outDir": "dist/lib"
-//		, "typeRoots": ["node_modules/@types"]
+		//		, "typeRoots": ["node_modules/@types"]
 	},
 	"include": [
 		"src"

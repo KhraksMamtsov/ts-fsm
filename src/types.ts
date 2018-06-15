@@ -1,14 +1,11 @@
 import StateMachine from "./StateMachine";
+import { StateMachineError } from "./Error";
 
 export type Arrayable<T> = T | T[];
 export type Callable<T> = T | (() => T);
 export type Thenable<T> = T | PromiseLike<T>;
 export type Source<T> = T | (() => T) | PromiseLike<T>;
 
-/**
- * Type of state name
- * @typedef {S} IState<S, T, D>["name"]
- */
 export interface IState<S = string | symbol, T = string | symbol, D = any> {
 	name: S;
 	data: D;
@@ -34,6 +31,11 @@ export interface _ITransition<S, T, D> extends ITransition<S, T, D> {
 export interface _IState<S, T, D> extends IState<S, T, D> {
 	before: ICancelableHook<S, T, D>[];
 	after: ICancelableHook<S, T, D>[];
+}
+
+export interface IConfig {
+	onError?: (error: StateMachineError) => void | never;
+	timeout?: number;
 }
 
 export interface ILyfecycle<S, T, D> {

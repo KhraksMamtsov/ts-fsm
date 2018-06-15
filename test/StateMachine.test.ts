@@ -51,9 +51,7 @@ describe("State Machine", () => {
 				before: [
 					() => {
 						return new Promise(resolve => {
-							setTimeout(() => {
-								resolve(true);
-							}, 5);
+							setTimeout(() => resolve(true), 5);
 						});
 					},
 				],
@@ -81,21 +79,28 @@ describe("State Machine", () => {
 
 		TestSM = new StateMachine<STATES, TRANSITIONS, temperature>(
 			STATES.SOLID,
-			{
-				states,
-			},
+			states,
 			{
 				transitions,
 				after: increaseEntropy,
+			},
+			{
+				onError(error) {
+					if (error.code === "TIMEOUT") {
+						console.log(error.code);
+						// throw Error("123");
+					}
+				},
+				timeout: 10000,
 			}
 		);
 	});
 
-	it("should exist", () => {
+	it(`should exist`, () => {
 		expect(TestSM).toBeDefined();
 	});
 
-	it("should be initialized with right state", () => {
+	it(`should be initialized with right state`, () => {
 		expect(TestSM.state).toBe(STATES.SOLID);
 	});
 
@@ -105,7 +110,7 @@ describe("State Machine", () => {
 		expect(TestSM.is(() => STATES.SOLID)).toBe(true);
 	});
 
-	it("should not pass 'is' predicate", async () => {
+	it(`should not pass "is" predicate`, async () => {
 		expect(await TestSM.is(STATES.LIQUID)).toBe(false);
 		expect(await TestSM.is(() => STATES.LIQUID)).toBe(false);
 	});
@@ -255,6 +260,76 @@ describe("State Machine", () => {
 	});
 
 	describe("State Machine: Throws", () => {
+		it(`too long Promise resolving throw StateMachineError#TIMEOUT`, async () => {
+			TestSM.onBeforeTransition(function() {
+				return new Promise(resolve => {
+					setTimeout(() => resolve(true), 2000);
+				});
+			});
+
+			try {
+				await TestSM.transitTo(STATES.LIQUID);
+			} catch (error) {
+				expect(error).toBeInstanceOf(StateMachineError);
+				expect(error).toHaveProperty("code", StateMachineError.ERROR_CODE.TIMEOUT);
+			}
+		});
+
+		describe(`"onError" custom error handling`, () => {
+			it(`if "onError" not throw custom error, then standard error will throwed`, () => {
+				let onErrorWasFired = false;
+				try {
+					// tslint:disable-next-line:no-unused-expression
+					new StateMachine(
+						STATES.PLASMA, // ABSENT_STATE
+						[],
+						[],
+						{
+							onError() {
+								onErrorWasFired = true;
+							},
+						}
+					);
+				} catch (error) {
+					expect(error).toBeInstanceOf(StateMachineError);
+					expect(error).toHaveProperty("code", StateMachineError.ERROR_CODE.ABSENT_STATE);
+				}
+				expect(onErrorWasFired).toEqual(true);
+			});
+
+			it(`"onError" throw custom error`, () => {
+				class CustomError extends Error {
+					public constructor(message: string, public standardError: Error) {
+						super(message);
+
+						// Set the prototype explicitly.
+						Object.setPrototypeOf(this, CustomError.prototype);
+					}
+				}
+
+				try {
+					// tslint:disable-next-line:no-unused-expression
+					new StateMachine(
+						STATES.PLASMA, // ABSENT_STATE
+						[],
+						[],
+						{
+							onError(error) {
+								throw new CustomError("Custom Error!", error);
+							},
+						}
+					);
+				} catch (error) {
+					expect(error).toBeInstanceOf(CustomError);
+					expect(error.standardError).toBeInstanceOf(StateMachineError);
+					expect(error).toHaveProperty(
+						["standardError", "code"],
+						StateMachineError.ERROR_CODE.ABSENT_STATE
+					);
+				}
+			});
+		});
+
 		describe(`"constructor" throw StateMachineError`, () => {
 			it(`"constructor" throw StateMachineError#ABSENT_STATE`, () => {
 				try {
