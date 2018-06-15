@@ -905,6 +905,7 @@ export default class StateMachine<S, T, D> {
 						}, this[CONFIG].timeout);
 					});
 				} else {
+					// tslint:disable-next-line:no-empty
 					timeoutPromise = new Promise(() => {});
 				}
 
