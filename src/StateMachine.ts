@@ -133,15 +133,15 @@ export default class StateMachine<S, T, D> {
 		initialStateName: IState<S, T, D>["name"],
 		states:
 			| {
-					states: IState<S, T, D>[];
 					before?: Arrayable<ICancelableHook<S, T, D>>;
+					states: IState<S, T, D>[];
 					after?: Arrayable<ICancelableHook<S, T, D>>;
 			  }
 			| IState<S, T, D>[],
 		transitions:
 			| {
-					transitions: ITransition<S, T, D>[];
 					before?: Arrayable<ICancelableHook<S, T, D>>;
+					transitions: ITransition<S, T, D>[];
 					after?: Arrayable<ICancelableHook<S, T, D>>;
 			  }
 			| ITransition<S, T, D>[],
@@ -850,6 +850,11 @@ export default class StateMachine<S, T, D> {
 		});
 	}
 
+	/**
+	 * Fire custom error handler.
+	 * If custom error handler throw an error it will be thrown further.
+	 * Throw StateMachineError otherwise.
+	 */
 	private _onError(error: StateMachineError): never {
 		const customErrorHandler = this[CONFIG].onError;
 

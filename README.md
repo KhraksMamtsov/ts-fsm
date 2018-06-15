@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/KhraksMamtsov/tfsm.svg?branch=master)](https://travis-ci.org/KhraksMamtsov/tfsm)
 [![Coverage Status](https://coveralls.io/repos/github/KhraksMamtsov/tfsm/badge.svg?branch=master)](https://coveralls.io/github/KhraksMamtsov/tfsm?branch=master)
 
-# Finit state machine writen in typescript
+# Finite state machine written in typescript
 
-Advanced
+Advanced control of entities' lifecycle.
 
 ```cmd
 npm install ts-fsm
@@ -61,7 +61,7 @@ const transitions = [{
     to: STATE.LIQUID,
 }];
 
-const sm = new StateMachine<STATE, TRANSITION, IDATA>(STATE.SOLID, { states }, { transitions });
+const sm = new StateMachine<STATE, TRANSITION, IDATA>(STATE.SOLID, states, transitions);
 
 sm.state // "SOLID"
 sm.data // { temperature: -100 }
@@ -75,8 +75,36 @@ sm.transitTo(STATE.LIQUID) // Promise { sm }
 sm.doTransition(TRANSITION.VAPORIZE) // Promise { sm }
    .then(sm => {
        sm.state; // "GAS"
-       sm.data; // { temperature: 50 }
+       sm.data; // { temperature: 200 }
    });
+```
+
+## Initialization
+
+`ts-fsm` provide overloaded constructor and methods signature.
+
+```typescript
+new StateMachine<STATE, TRANSITION, IDATA>(
+    STATE.SOLID, 
+    states,
+    transitions
+);
+
+new StateMachine<STATE, TRANSITION, IDATA>(
+    STATE.SOLID, // initial state 
+    {
+        before: () => {}, // beforeEachState
+        states,
+        after: [() => {}, () => {}], // afterEachState
+    }, {
+        before: () => {}, // beforeEachTransition
+        transitions,
+        after: [() => {}, () => {}], // afterEachTransition
+    }, {
+        onError: () => {};
+        timeout: 1000;
+    }
+);
 ```
 
 ## Lifecycle Hooks
@@ -87,7 +115,11 @@ As a handler, both a single function and an array of functions can be passed.
 
 As a value, the handler takes `transport`, `from-state`, `to-state`. `this` - an instance of state machine.
 
+`transport` argument - mutable object, shared and passed through each hook handler.
+
 Transition can be canceled from any handler with explicitly return `false` or `Promise { false }`, in this case, then the subsequent handlers are not called, and state machine return to previous state.
+
+Each handler can be limited by time with passing `timeout` setting into constructor.
 
 | Hook | Define | Fired |
 |------|--------|-------|
@@ -102,19 +134,40 @@ Transition can be canceled from any handler with explicitly return `false` or `P
 | ```beforeEachState``` | constructor: state: before | before any state
 
 ```typescript
+const increaseEntropy = ({ transport }: { transport: IObject }) => {
+    transport["entropy"] = transport["entropy"] === undefined ? 0 : transport["entropy"] + 1;
+};
+
 new StateMachine<STATE, TRANSITION, IDATA>(
     STATE.SOLID, 
     {
-        before: function (transport, from, to) => {} 
-        states 
+        before: increaseEntropy, // accept single function or array of functions
+        states,
+        after: [ // accept single function or array of functions
+            (transport, from, to) => {
+                console.log(transport["entropy"]); // 0
+            },
+            increaseEntropy,
+            (transport, from, to) => {
+                console.log(transport["entropy"]); // 1
+            },
+        ]
     },
     transitions 
 ); 
 ```
 
+Also additional aruments can be passed to `transitTo` and `doTransition` methods.
+
+```typescript
+const handler = (transport, from, to, ...args) => { console.log(args); }
+
+sm.transitTo(STATE.GAS, 1, null, "3"); // [1, null, "3"]
+```
+
 ## Pending state
 
-`doTransition` and `transitTo` methods set state machin into pending state
+`doTransition` and `transitTo` methods set state machine into pending state.
 
 ```typescript
 sm.isPending; // false
@@ -127,4 +180,55 @@ sm.transitTo(STATE.GAS)
 sm.isPending; // true
 
 sm.transitTo(STATE.LIQUID) // throws: StateMachineError#PENDING_STATE
+```
+
+## Hydration \ dehydration
+
+Hydration\dehydration mechanism allows save\recover current state of state machine.
+
+Getter `dehydrated` returns simple plain object-representation of state machine's state.
+
+Method `hydrate` accept object returned by `dehydrated` and recover state.
+
+```typescript
+const currentState = sm.hydrated;
+console.log(currentState);
+/* {
+    state: "GAS",
+    data: { temperature: 200 },
+    transport: { entropy: 2 }
+} */
+
+saveToAnywhere(currentState);
+
+
+// ***********
+// later
+const savedState = getFromAnywhere();
+sm.hydrate(savedState);
+```
+
+## Custom error handling
+
+By default `ts-fsm` throw errors, but this behaviour mey be changed with `onError` handler function implementation.
+
+Each time, then `ts-fsm` throw an error firstly will fire `onError` handler with error passed with first argument.
+
+`onError` may throw it's custom error, otherwise `ts-fsm`'s error will thrown.
+
+Anyway state machine throw error.
+
+```typescript
+new StateMachine<STATE, TRANSITION, IDATA>(
+    STATE.SOLID, 
+    states,
+    transitions,
+    {
+        onError(error) {
+            someAwesomeLogger(error);
+            makeSomeAction();
+            throw CustomError("Custom Error!");
+        }
+    }
+); 
 ```
