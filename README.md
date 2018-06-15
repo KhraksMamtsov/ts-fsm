@@ -9,8 +9,8 @@
 
 
 
-# Finite state machine written in typescript
-
+# 🤖 Finite state machine written in typescript
+❄️ ↔️ 🌊 ↔️ ♨️
 Advanced control of entities' lifecycle.
 
 ```cmd
@@ -87,7 +87,7 @@ sm.doTransition(TRANSITION.VAPORIZE) // Promise { sm }
    });
 ```
 
-## Initialization
+## 🏁🏁 Initialization
 
 `ts-fsm` provide overloaded constructor and methods signature.
 
@@ -115,7 +115,7 @@ new StateMachine<STATE, TRANSITION, IDATA>(
 );
 ```
 
-## Lifecycle Hooks
+## 🍃🎣 Lifecycle Hooks
 
 State machine provide several hooks for track or perform an action when a transition occurs.
 
@@ -173,7 +173,7 @@ const handler = (transport, from, to, ...args) => { console.log(args); }
 sm.transitTo(STATE.GAS, 1, null, "3"); // [1, null, "3"]
 ```
 
-## Pending state
+## ⏲️⏲️ Pending state
 
 `doTransition` and `transitTo` methods set state machine into pending state.
 
@@ -190,7 +190,7 @@ sm.isPending; // true
 sm.transitTo(STATE.LIQUID) // throws: StateMachineError#PENDING_STATE
 ```
 
-## Hydration \ dehydration
+## 🏜️🌧️ Hydration \ dehydration
 
 Hydration\dehydration mechanism allows save\recover current state of state machine.
 
@@ -216,7 +216,7 @@ const savedState = getFromAnywhere();
 sm.hydrate(savedState);
 ```
 
-## Custom error handling
+## 🚫⚠️ Custom error handling
 
 By default `ts-fsm` throw errors, but this behaviour mey be changed with `onError` handler function implementation.
 
