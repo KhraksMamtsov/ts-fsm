@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.org/KhraksMamtsov/tfsm.svg?branch=master)](https://travis-ci.org/KhraksMamtsov/tfsm)
-[![Coverage Status](https://coveralls.io/repos/github/KhraksMamtsov/tfsm/badge.svg?branch=master)](https://coveralls.io/github/KhraksMamtsov/tfsm?branch=master)
+[![Build Status](https://travis-ci.org/KhraksMamtsov/ts-fsm.svg?branch=master)](https://travis-ci.org/KhraksMamtsov/ts-fsm)
+[![Coverage Status](https://coveralls.io/repos/github/KhraksMamtsov/ts-fsm/badge.svg?branch=master)](https://coveralls.io/github/KhraksMamtsov/ts-fsm?branch=master)
 
 # Finite state machine written in typescript
 
