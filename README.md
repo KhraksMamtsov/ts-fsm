@@ -1,5 +1,13 @@
-[![Build Status](https://travis-ci.org/KhraksMamtsov/ts-fsm.svg?branch=master)](https://travis-ci.org/KhraksMamtsov/ts-fsm)
-[![Coverage Status](https://coveralls.io/repos/github/KhraksMamtsov/ts-fsm/badge.svg?branch=master)](https://coveralls.io/github/KhraksMamtsov/ts-fsm?branch=master)
+![GitHub top language](https://img.shields.io/github/languages/top/KhraksMamtsov/ts-fsm.svg?style=flat-square)
+![npm type definitions](https://img.shields.io/npm/types/ts-fsm.svg?style=flat-square)
+[![Build Status](https://img.shields.io/travis/KhraksMamtsov/ts-fsm/master.svg?style=flat-square)](https://travis-ci.org/KhraksMamtsov/ts-fsm)
+[![Coverage Status](https://img.shields.io/coveralls/github/KhraksMamtsov/ts-fsm/master.svg?style=flat-square)](https://coveralls.io/github/KhraksMamtsov/ts-fsm?branch=master)
+[![npm bundle size (minified + gzip)](https://img.shields.io/bundlephobia/minzip/ts-fsm.svg?style=flat-square)](https://bundlephobia.com/result?p=ts-fsm)
+[![npm bundle size (minified)](https://img.shields.io/bundlephobia/min/ts-fsm.svg?style=flat-square)](https://bundlephobia.com/result?p=ts-fsm)
+![license](https://img.shields.io/github/license/KhraksMamtsov/ts-fsm.svg?style=flat-square)
+
+
+
 
 # Finite state machine written in typescript
 
